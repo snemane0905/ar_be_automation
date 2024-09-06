@@ -88,11 +88,12 @@ The test results will be printed in the console, including whether the authentic
 ## Code Structure
 
 - `get_token()`: Retrieves an OAuth2 token using the client credentials.
+- `read_config()`: Reads the configuration from `config.ini`.
 - `read_expected_json(file_name)`: Reads the expected JSON response from a file.
+- `api_test()`: Executes the API test with provided parameters.
 - `send_api_request(endpoint_url, method, ...)`: Sends an HTTP request to the specified API endpoint.
 - `verify_response(response, test_case, ...)`: Compares the actual API response with the expected values.
-- `read_config()`: Reads the configuration from `config.ini`.
-- `api_test()`: Executes the API test with provided parameters.
+
 
 ### Example Flow:
 
