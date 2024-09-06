@@ -1,4 +1,5 @@
 import configparser
+import json
 import os
 import requests
 from requests.auth import HTTPBasicAuth
@@ -38,7 +39,12 @@ def get_token(client_id, client_secret, partner_url='https://sandbox-partners-ap
     else:
         raise Exception("\033[91m----Authentication Error-------\033[0m")
         
-
+def read_expected_json(file_name=None):
+    file_name = file_name + ".json"
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return data
 
 def send_api_request(endpoint_url, method="GET", headers=None, data=None, params=None):
     """
@@ -54,12 +60,11 @@ def send_api_request(endpoint_url, method="GET", headers=None, data=None, params
     Returns:
     - response: The HTTP response.
     """
-
     response = requests.request(method, endpoint_url, headers=headers, data=data, params=params)
     return response
 
 
-def verify_response(response, expected_status_code, expected_json=None):
+def verify_response(response, test_case, expected_status_code, expected_json=None):
     """
     Verifies that the HTTP response matches the expected values.
 
@@ -71,11 +76,22 @@ def verify_response(response, expected_status_code, expected_json=None):
     Raises:
     - AssertionError if the verification fails.
     """
-    import ipdb;ipdb.set_trace()
     assert response.status_code == expected_status_code, f"Expected {expected_status_code}, got {response.status_code}"
     
-    if expected_json:
-        assert response.json() == expected_json, f"Expected JSON {expected_json}, got {response.json()}"
+    if test_case == 1:
+        resp = response.json()
+        if 'package_id' in resp['data'].keys():
+            assert resp['data']['package_id'] == expected_json['data']['package_id'], f"Assertion failed for Package: Expected {expected_json['data']['package_id']}, got {resp['data']['package_id']}"
+            assert resp['data']['quantity'] == expected_json['data']['quantity'], f"Assertion failed for Package: Expected {expected_json['data']['quantity']}, got {resp['data']['quantity']}"
+            print ("\033[92m--------Endpoint 1 test execution successful----------------\033[0m")
+    if test_case == 2:
+        response_iccid = list()
+        response_iccid = sorted([i['iccid'] for i in response.json()['data']])
+        expected_iccid = sorted([i['iccid'] for i in expected_json.json()['data']['sims']])
+        for i in range(0, len(expected_iccid)):
+            assert response_iccid[i] == expected_iccid[i]
+        print ("\033[92m--------Endpoint 2 test execution successful----------------\033[0m")
+            
 
 
 
@@ -93,7 +109,7 @@ def read_config(config=None):
         raise Exception("\033[91mUnexpected error occurred while reading config file\033[0m")
 
 
-def api_test(endpoint_url, method, headers, data, params, expected_status_code, expected_json):
+def api_test(endpoint_url, method, headers, data, params):
     """
     Test an API endpoint by sending a request and verifying the response.
 
@@ -106,15 +122,12 @@ def api_test(endpoint_url, method, headers, data, params, expected_status_code, 
     - headers (dict): Optional HTTP headers.
     - data (dict): Optional data for POST/PUT requests.
     - params (dict): Optional query parameters for GET requests.
-    - expected_status_code (int): The expected HTTP status code.
-    - expected_json (dict): The expected JSON response.
-
+ 
     Raises:
     - AssertionError if the verification fails.
     """
-    import ipdb;ipdb.set_trace()
     response = send_api_request(endpoint_url, method, headers, data, params)
-    verify_response(response, expected_status_code, expected_json)
+    return response
 
 
 if __name__ == "__main__":
@@ -138,11 +151,8 @@ if __name__ == "__main__":
         'package_id' : 'merhaba-7days-1gb'  
     }
 
-    ep1_expected_json = {
+    ep1_expected_json = read_expected_json("endpoint1")
 
-    }
-
-    ep2_expected_json = {}
     data = {
         'grant_type': 'client_credentials'
     }
@@ -153,18 +163,16 @@ if __name__ == "__main__":
         ○ Ensure you have a valid OAuth2 token before making the request.  
     """
 
-    # response = requests.post(endpoint1_url, json=ep1_payload, headers=headers)
-
-    api_test(endpoint_url=endpoint1_url, method='POST', headers=api_headers, data=None, params=None, expected_status_code=200, expected_json=ep1_expected_json)
-    
+    endpoint1_resp = api_test(endpoint_url=endpoint1_url, method='POST', headers=api_headers, data=None, params=ep1_payload)
+    verify_response(endpoint1_resp, 1, 200, ep1_expected_json)    
     """
     Endpoint 2:
         ○ Use this endpoint to GET a list of eSIMs.
         ○ Ensure the list contains 6 eSIMs, and that all of them have the merhaba-7days-1gb; package slug.
         ○ Ensure you have a valid OAuth2 token before making the request.
     """
-    api_test(endpoint_url=endpoint2_url, method='GET', headers=api_headers, data=data, params={'limit' : 6}, expected_status_code=200, expected_json=ep2_expected_json)
-
+    endpoint_resp = api_test(endpoint_url=endpoint2_url, method='GET', headers=api_headers, data=data, params={'limit' : 6})
+    verify_response(endpoint_resp, 2, 200, endpoint1_resp)   
 
 
 

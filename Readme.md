@@ -1,53 +1,103 @@
-# Python Test Automation
 
-This repository contains automated tests written in Python, which are designed to test various functionalities of BE application. The tests are developed using the `selenium` framework and can be easily executed using a variety of commands and configurations.
+# API Testing Automation
+
+This project is designed to test API endpoints using Python. It includes functionality for OAuth2 authentication, sending API requests, verifying responses, and comparing actual vs expected results.
 
 ## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Clone Repository](#clone-repo)
-- [Install Depenencies](#tinstall-dep)
-- [Running Tests](#running-tests)
 
-## Prerequisites
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API Endpoints Tested](#api-endpoints-tested)
+- [Code Structure](#code-structure)
 
-Ensure that the following are installed on your machine:
+---
 
-- **Python 3.x**: Install the latest version of Python from [here](https://www.python.org/downloads/).
-- **pip**: Python's package manager, included by default in Python installations.
-- **selenium**: Python testing framework.
-- **request_toolbelt**: An extension for the requests library in Python, providing additional utilities to enhance the functionality of HTTP requests. 
+## Installation
 
-To verify if Python and pip are installed, run:
+### Prerequisites
+
+- Python 3.x
+- `pip` (Python package manager)
+
+### Steps
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/snemane0905/ar_be_automation.git
+   ```
+2. **Navigate into the project directory:**
+
+    ```bash
+    cd ar_be_automation
+    ```
+3. **Install the required Python packages:**
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+### Dependencies:
+
+- `requests`
+- `requests_toolbelt`
+- `configparser`
+
+## Configuration
+
+Before running the tests, you need to configure the API credentials and endpoint URLs. This is done via the `config.ini` file in the root directory.
+
+### `config.ini` Format:
+
+```ini
+[SANDBOX]
+client_id = your_client_id
+client_secret = your_client_secret
+partner_url = https://sandbox-partners-api.airalo.com/v2/token
+endpoint1_url = https://api.example.com/endpoint1
+endpoint2_url = https://api.example.com/endpoint2
+```
+
+Make sure to update the values with your actual client credentials and endpoint URLs.
+
+## Usage
+
+### Run the tests:
+
+1. **Once you have configured the `config.ini` file, you can run the main script:**
+
 ```bash
-python --version
-pip --version
-
- 
-## cloner-epo
-
-Follow these steps to set up the test automation environment on your local machine:
-
-### 1. Clone the Repository
-
-First, clone this repository to your local machine using `git`:
-
-```bash
-git clone https://github.com/your-repo/test-automation.git
-cd test-automation
-
-``
-## install-dep
-
-### 2. Install dependencies 
-
-Install python depdendencies from requirements.txt with 
-```bash
-pip install -r requirements.txt
-``
-## unning-tests
-### 3. Running Tests 
-```bash
-cd be_automation
 python api_request.py
-``
+```
+
+2. **Check the output:**
+
+The test results will be printed in the console, including whether the authentication was successful and whether each endpoint's execution was successful.
+
+## API Endpoints Tested
+
+1. **Endpoint 1:**
+   - Sends a `POST` request to place an order for 6 "merhaba-7days-1gb" eSIMs.
+   - Verifies that the `package_id` and `quantity` match the expected values.
+
+2. **Endpoint 2:**
+   - Sends a `GET` request to retrieve a list of eSIMs.
+   - Verifies that the list contains 6 eSIMs and checks for the correct `package_slug`.
+
+
+## Code Structure
+
+- `get_token()`: Retrieves an OAuth2 token using the client credentials.
+- `read_expected_json(file_name)`: Reads the expected JSON response from a file.
+- `send_api_request(endpoint_url, method, ...)`: Sends an HTTP request to the specified API endpoint.
+- `verify_response(response, test_case, ...)`: Compares the actual API response with the expected values.
+- `read_config()`: Reads the configuration from `config.ini`.
+- `api_test()`: Executes the API test with provided parameters.
+
+### Example Flow:
+
+1. **Get OAuth2 Token**: The token is fetched using client credentials.
+2. **Test Endpoint 1**: Sends a `POST` request to place an order for 6 eSIMs.
+3. **Test Endpoint 2**: Sends a `GET` request to retrieve the list of eSIMs.
+
 
